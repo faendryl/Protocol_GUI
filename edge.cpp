@@ -64,6 +64,8 @@ Edge::Edge(Node *sourceNode, Node *destNode)
 
 Edge::~Edge()
 {
+    if(source) source->removeEdge(this);
+    if(dest) dest->removeEdge(this);
 }
 
 Node *Edge::sourceNode() const
@@ -92,15 +94,15 @@ void Edge::adjust()
 {
     if (!source)// || (!dest && (!scene() || scene()->mouseGrabberItem()!=this)))
         return;
+    prepareGeometryChange();
+
     QPointF destPos;
     if(dest) destPos=mapFromItem(dest, 0, 0);
     else{
-        destPos=pos();
+        destPos=mapFromParent(pos());
     }
     QLineF line(mapFromItem(source, 0, 0), destPos);
     qreal length = line.length();
-
-    prepareGeometryChange();
 
     if (length > qreal(20.)) {
         QPointF edgeOffset((line.dx() * 10) / length, (line.dy() * 10) / length);
@@ -113,7 +115,7 @@ void Edge::adjust()
 
 QRectF Edge::boundingRect() const
 {
-    if (!source || !dest)
+    if (!source)// || !dest)
         return QRectF();
 
     qreal penWidth = 1;

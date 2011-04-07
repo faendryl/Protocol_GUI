@@ -8,5 +8,6 @@ DEPENDPATH += .
 INCLUDEPATH += .
 
 # Input
+CONFIG  += debug
 HEADERS += edge.h graphwidget.h node.h
 SOURCES += edge.cpp graphwidget.cpp main.cpp node.cpp

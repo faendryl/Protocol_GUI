@@ -56,13 +56,18 @@ Node::Node(GraphWidget *graphWidget)
     setFlag(ItemSendsGeometryChanges);
     setCacheMode(DeviceCoordinateCache);
     setZValue(-1);
-    setAcceptedMouseButtons(0);
+    setAcceptedMouseButtons(Qt::LeftButton);
 }
 
 void Node::addEdge(Edge *edge)
 {
     edgeList << edge;
     edge->adjust();
+}
+
+void Node::removeEdge(Edge *edge)
+{
+    edgeList.removeOne(edge);
 }
 
 QList<Edge *> Node::edges() const
@@ -107,8 +112,9 @@ void Node::calculateForces()
         yvel += pos.y() / weight;
     }
     
-    if (qAbs(xvel) < 0.1 && qAbs(yvel) < 0.1)
+    //if (qAbs(xvel) < 0.1 && qAbs(yvel) < 0.1)
         xvel = yvel = 0;
+
 
     QRectF sceneRect = scene()->sceneRect();
     newPos = pos() + QPointF(xvel, yvel);
@@ -179,15 +185,11 @@ QVariant Node::itemChange(GraphicsItemChange change, const QVariant &value)
 void Node::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     update();
-    //Edge* edge=new Edge(this,0);
-    //scene->addItem(edge);
-    //std::cout<<"Got press "<<this<<std::endl;
     QGraphicsItem::mousePressEvent(event);
 }
 
 void Node::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     update();
-    std::cout<<"Got release "<<this<<std::endl;
     QGraphicsItem::mouseReleaseEvent(event);
 }

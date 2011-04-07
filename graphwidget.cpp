@@ -51,7 +51,7 @@
 #include <iostream>
 
 GraphWidget::GraphWidget()
-    : timerId(0)
+    : timerId(0),creatingEdge(0)
 {
     QGraphicsScene *scene = new QGraphicsScene(this);
     scene->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -138,10 +138,16 @@ void GraphWidget::keyPressEvent(QKeyEvent *event)
         break;
     case Qt::Key_Space:
     case Qt::Key_Enter:
-        foreach (QGraphicsItem *item, scene()->items()) {
+
+        /*QQueue<NodeWithInputs*> processingNodes;
+        processingNodes.append(new NodeWithInputs(centerNode));
+        while(!processingNodes.isEmpty()){
+            NodeWithInputs* 
+            }*/
+        /*foreach (QGraphicsItem *item, scene()->items()) {
             if (qgraphicsitem_cast<Node *>(item))
                 item->setPos(-150 + qrand() % 300, -150 + qrand() % 300);
-        }
+                }*/
         break;
     default:
         QGraphicsView::keyPressEvent(event);
@@ -174,7 +180,6 @@ void GraphWidget::timerEvent(QTimerEvent *event)
     }
 
     if (!itemsMoved) {
-        std::cout<<"Murdered timer"<<std::endl;
         killTimer(timerId);
         timerId = 0;
     }
@@ -187,13 +192,15 @@ void GraphWidget::mousePressEvent(QMouseEvent *event)
     QPointF scenePos(mapToScene(event->pos()));
     if(event->button()==Qt::RightButton){
         QList<QGraphicsItem*> startItems=scene()->items(scenePos);
-        if(startItems.count()>0){
-            Node* startNode=qgraphicsitem_cast<Node*>(startItems.first());
-            Edge *edge=new Edge(startNode,0);
-            scene()->addItem(edge);
-            creatingEdge=edge;
-            // TODO: mark this as the grabbed edge
-            std::cout<<"Added edge"<<std::endl;
+        foreach (QGraphicsItem *item,startItems){
+            Node *startNode=qgraphicsitem_cast<Node*>(item);
+            if(startNode){
+                Edge *edge=new Edge(startNode,0);
+                scene()->addItem(edge);
+                edge->setPos(mapToScene(event->pos()));
+                creatingEdge=edge;
+                break;
+            }
         }
     }
     else{
@@ -201,22 +208,33 @@ void GraphWidget::mousePressEvent(QMouseEvent *event)
         node->setPos(scenePos.x(),scenePos.y());
         scene()->addItem(node);
     }
-    std::cout<<"Drawing at "<<scenePos.x()<<" "<<scenePos.y()<<std::endl;
 }
 
 void GraphWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     QGraphicsView::mouseReleaseEvent(event);
-    std::cout<<"Release"<<std::endl;
-    if(event->button()==Qt::RightButton){
+    if(event->button()==Qt::RightButton && creatingEdge){
         QPointF scenePos(mapToScene(event->pos()));
         QList<QGraphicsItem*> endItems=scene()->items(scenePos);
-        if(endItems.count()>0){
-            std::cout<<endItems.count()<<std::endl;
-            Node* endNode=qgraphicsitem_cast<Node*>(endItems.first());
+        foreach (QGraphicsItem* item, endItems){
+            Node* endNode=qgraphicsitem_cast<Node*>(item);
+            if(!endNode) continue;
             creatingEdge->setDestNode(endNode);
+            creatingEdge=0;
+            return;
         }
+        scene()->removeItem(creatingEdge);
+        delete creatingEdge;
         creatingEdge=0;
+    }
+}
+
+void GraphWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    QGraphicsView::mouseMoveEvent(event);
+    if(creatingEdge){
+        creatingEdge->setPos(mapToScene(event->pos()));
+        creatingEdge->adjust();
     }
 }
 
