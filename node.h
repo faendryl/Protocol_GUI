@@ -47,6 +47,7 @@
 
 class Edge;
 class GraphWidget;
+class Data;
 QT_BEGIN_NAMESPACE
 class QGraphicsSceneMouseEvent;
 QT_END_NAMESPACE
@@ -59,12 +60,15 @@ public:
     void addEdge(Edge *edge);
     void removeEdge(Edge *edge);
     QList<Edge *> edges() const;
+    QList<Edge *> outgoingEdges() const;
 
     enum { Type = UserType + 1 };
     int type() const { return Type; }
 
     void calculateForces();
     bool advance();
+    void prepareExecution();
+    bool execute();
 
     QRectF boundingRect() const;
     QPainterPath shape() const;
@@ -78,6 +82,9 @@ protected:
     
 private:
     QList<Edge *> edgeList;
+    QList<Edge *> incomingEdgeList;
+    QList<Edge *> outgoingEdgeList;
+    QList<Data *> inputList;
     QPointF newPos;
     GraphWidget *graph;
 };

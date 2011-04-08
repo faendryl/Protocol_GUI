@@ -44,6 +44,7 @@
 #include <QPainter>
 #include <QStyleOption>
 
+#include "data.h"
 #include "edge.h"
 #include "node.h"
 #include "graphwidget.h"
@@ -62,17 +63,30 @@ Node::Node(GraphWidget *graphWidget)
 void Node::addEdge(Edge *edge)
 {
     edgeList << edge;
+    if(edge->sourceNode()==this)
+        outgoingEdgeList << edge;
+    else
+        incomingEdgeList << edge;
     edge->adjust();
 }
 
 void Node::removeEdge(Edge *edge)
 {
     edgeList.removeOne(edge);
+    if(incomingEdgeList.contains(edge))
+        incomingEdgeList.removeOne(edge);
+    else
+        outgoingEdgeList.removeOne(edge);
 }
 
 QList<Edge *> Node::edges() const
 {
     return edgeList;
+}
+
+QList<Edge *> Node::outgoingEdges() const
+{
+    return outgoingEdgeList;
 }
 
 void Node::calculateForces()
@@ -129,6 +143,41 @@ bool Node::advance()
         return false;
 
     setPos(newPos);
+    return true;
+}
+
+void Node::prepareExecution()
+{
+}
+
+bool Node::execute()
+{
+    int sum=1;
+    int incoming_edge_count=0;
+    int outgoing_edge_count=0;
+    // poll input edges to see if they're ready
+    // only incoming edges
+    // POLL
+    foreach(Edge *edge,incomingEdgeList){
+        incoming_edge_count++;
+        if(!edge->edgeData()) return false;
+    }
+    // COMPUTE & CONSUME
+    foreach(Edge *edge,incomingEdgeList){
+        sum+=edge->edgeData()->value;
+        edge->prepareExecution();
+    }
+
+    // ALERT
+    foreach(Edge *edge,outgoingEdgeList){
+        outgoing_edge_count++;
+        Data *data=new Data();
+        data->value=sum;
+        edge->setEdgeData(data);
+    }
+    // Use a consumption model - inputs get consumed when used.  This will allow cycles, among other things.
+    if(!outgoing_edge_count)
+        std::cout<<"Node result: "<<sum<<std::endl;
     return true;
 }
 

@@ -44,7 +44,9 @@
 
 #include "edge.h"
 #include "node.h"
+#include "data.h"
 
+#include <assert.h>
 #include <math.h>
 #include <iostream>
 
@@ -52,7 +54,7 @@ static const double Pi = 3.14159265358979323846264338327950288419717;
 static double TwoPi = 2.0 * Pi;
 
 Edge::Edge(Node *sourceNode, Node *destNode)
-    : arrowSize(10)
+    : data(0),arrowSize(10)
 {
     setAcceptedMouseButtons(0);
     source = sourceNode;
@@ -86,7 +88,9 @@ Node *Edge::destNode() const
 
 void Edge::setDestNode(Node *node)
 {
+    if(dest) dest->removeEdge(this);
     dest = node;
+    node->addEdge(this);
     adjust();
 }
 
@@ -111,6 +115,23 @@ void Edge::adjust()
     } else {
         sourcePoint = destPoint = line.p1();
     }
+}
+
+void Edge::prepareExecution()
+{
+    delete data;
+    data=0;
+}
+
+void Edge::setEdgeData(Data *data_input)
+{
+    assert(!data);
+    data=data_input;
+}
+
+Data* Edge::edgeData()
+{
+    return data;
 }
 
 QRectF Edge::boundingRect() const
@@ -145,16 +166,16 @@ void Edge::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
     if (line.dy() >= 0)
         angle = TwoPi - angle;
 
-    QPointF sourceArrowP1 = sourcePoint + QPointF(sin(angle + Pi / 3) * arrowSize,
-                                                  cos(angle + Pi / 3) * arrowSize);
-    QPointF sourceArrowP2 = sourcePoint + QPointF(sin(angle + Pi - Pi / 3) * arrowSize,
-                                                  cos(angle + Pi - Pi / 3) * arrowSize);   
+    //QPointF sourceArrowP1 = sourcePoint + QPointF(sin(angle + Pi / 3) * arrowSize,
+    //                                              cos(angle + Pi / 3) * arrowSize);
+    //QPointF sourceArrowP2 = sourcePoint + QPointF(sin(angle + Pi - Pi / 3) * arrowSize,
+    //                                              cos(angle + Pi - Pi / 3) * arrowSize);   
     QPointF destArrowP1 = destPoint + QPointF(sin(angle - Pi / 3) * arrowSize,
                                               cos(angle - Pi / 3) * arrowSize);
     QPointF destArrowP2 = destPoint + QPointF(sin(angle - Pi + Pi / 3) * arrowSize,
                                               cos(angle - Pi + Pi / 3) * arrowSize);
 
     painter->setBrush(Qt::black);
-    painter->drawPolygon(QPolygonF() << line.p1() << sourceArrowP1 << sourceArrowP2);
+    //painter->drawPolygon(QPolygonF() << line.p1() << sourceArrowP1 << sourceArrowP2);
     painter->drawPolygon(QPolygonF() << line.p2() << destArrowP1 << destArrowP2);        
 }

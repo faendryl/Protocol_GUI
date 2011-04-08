@@ -46,6 +46,7 @@
 #include <QDebug>
 #include <QGraphicsScene>
 #include <QWheelEvent>
+#include <QQueue>
 
 #include <math.h>
 #include <iostream>
@@ -63,21 +64,21 @@ GraphWidget::GraphWidget()
     setTransformationAnchor(AnchorUnderMouse);
     setResizeAnchor(AnchorViewCenter);
 
-    Node *node1 = new Node(this);
+    /*Node *node1 = new Node(this);
     Node *node2 = new Node(this);
     Node *node3 = new Node(this);
-    Node *node4 = new Node(this);
+    Node *node4 = new Node(this);*/
     centerNode = new Node(this);
-    Node *node6 = new Node(this);
+    /*Node *node6 = new Node(this);
     Node *node7 = new Node(this);
     Node *node8 = new Node(this);
     Node *node9 = new Node(this);
     scene->addItem(node1);
     scene->addItem(node2);
     scene->addItem(node3);
-    scene->addItem(node4);
+    scene->addItem(node4);*/
     scene->addItem(centerNode);
-    scene->addItem(node6);
+    /*scene->addItem(node6);
     scene->addItem(node7);
     scene->addItem(node8);
     scene->addItem(node9);
@@ -97,12 +98,12 @@ GraphWidget::GraphWidget()
     node1->setPos(-50, -50);
     node2->setPos(0, -50);
     node3->setPos(50, -50);
-    node4->setPos(-50, 0);
+    node4->setPos(-50, 0);*/
     centerNode->setPos(0, 0);
-    node6->setPos(50, 0);
+    /*node6->setPos(50, 0);
     node7->setPos(-50, 50);
     node8->setPos(0, 50);
-    node9->setPos(50, 50);
+    node9->setPos(50, 50);*/
 
     scale(qreal(0.8), qreal(0.8));
     setMinimumSize(400, 400);
@@ -138,7 +139,7 @@ void GraphWidget::keyPressEvent(QKeyEvent *event)
         break;
     case Qt::Key_Space:
     case Qt::Key_Enter:
-
+        execute();
         /*QQueue<NodeWithInputs*> processingNodes;
         processingNodes.append(new NodeWithInputs(centerNode));
         while(!processingNodes.isEmpty()){
@@ -151,6 +152,36 @@ void GraphWidget::keyPressEvent(QKeyEvent *event)
         break;
     default:
         QGraphicsView::keyPressEvent(event);
+    }
+}
+
+void GraphWidget::execute()
+{
+    QList<Node *> nodes;
+    QList<Edge *> edges;
+    foreach (QGraphicsItem *item, scene()->items()) {
+        if (Node *node = qgraphicsitem_cast<Node *>(item))
+            nodes << node;
+        if (Edge *edge = qgraphicsitem_cast<Edge *>(item))
+            edges << edge;
+    }
+
+    foreach (Node *node, nodes)
+        node->prepareExecution();
+
+    foreach (Edge *edge, edges)
+        edge->prepareExecution();
+
+    QQueue<Node*> activeNodes;
+    activeNodes.append(centerNode);
+    while(!activeNodes.isEmpty()){
+        Node *activeNode=activeNodes.head();
+        activeNodes.dequeue();
+        if(activeNode->execute()){
+            foreach(Edge *edge,activeNode->outgoingEdges()){
+                activeNodes.enqueue(edge->destNode());
+            }
+        }
     }
 }
 

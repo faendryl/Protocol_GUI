@@ -58,6 +58,7 @@ public:
 
 protected:
     void keyPressEvent(QKeyEvent *event);
+    void execute();
     void timerEvent(QTimerEvent *event);
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);

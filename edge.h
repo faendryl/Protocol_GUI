@@ -45,6 +45,7 @@
 #include <QGraphicsItem>
 
 class Node;
+class Data;
 
 class Edge : public QGraphicsItem
 {
@@ -59,6 +60,9 @@ public:
     void setDestNode(Node *node);
 
     void adjust();
+    void prepareExecution();
+    void setEdgeData(Data* data);
+    Data* edgeData();
 
     enum { Type = UserType + 2 };
     int type() const { return Type; }
@@ -69,6 +73,7 @@ protected:
     
 private:
     Node *source, *dest;
+    Data *data;
 
     QPointF sourcePoint;
     QPointF destPoint;
