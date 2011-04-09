@@ -1,8 +1,8 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'graphwidget.h'
 **
-** Created: Fri Apr 8 13:44:06 2011
-**      by: The Qt Meta Object Compiler version 62 (Qt 4.7.0)
+** Created: Fri Apr 8 23:13:25 2011
+**      by: The Qt Meta Object Compiler version 62 (Qt 4.6.2)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
@@ -11,7 +11,7 @@
 #if !defined(Q_MOC_OUTPUT_REVISION)
 #error "The header file 'graphwidget.h' doesn't include <QObject>."
 #elif Q_MOC_OUTPUT_REVISION != 62
-#error "This file was generated using the moc from 4.7.0. It"
+#error "This file was generated using the moc from 4.6.2. It"
 #error "cannot be used with the include files from this version of Qt."
 #error "(The moc has changed too much.)"
 #endif
@@ -20,21 +20,27 @@ QT_BEGIN_MOC_NAMESPACE
 static const uint qt_meta_data_GraphWidget[] = {
 
  // content:
-       5,       // revision
+       4,       // revision
        0,       // classname
        0,    0, // classinfo
-       0,    0, // methods
+       3,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
        0,       // flags
        0,       // signalCount
 
+ // slots: signature, parameters, type, tag, flags
+      13,   12,   12,   12, 0x08,
+      23,   12,   12,   12, 0x08,
+      33,   12,   12,   12, 0x08,
+
        0        // eod
 };
 
 static const char qt_meta_stringdata_GraphWidget[] = {
-    "GraphWidget\0"
+    "GraphWidget\0\0newNode()\0newEdge()\0"
+    "moveNode()\0"
 };
 
 const QMetaObject GraphWidget::staticMetaObject = {
@@ -64,6 +70,15 @@ int GraphWidget::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     _id = QGraphicsView::qt_metacall(_c, _id, _a);
     if (_id < 0)
         return _id;
+    if (_c == QMetaObject::InvokeMetaMethod) {
+        switch (_id) {
+        case 0: newNode(); break;
+        case 1: newEdge(); break;
+        case 2: moveNode(); break;
+        default: ;
+        }
+        _id -= 3;
+    }
     return _id;
 }
 QT_END_MOC_NAMESPACE

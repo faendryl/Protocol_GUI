@@ -52,11 +52,19 @@ class GraphWidget : public QGraphicsView
     Q_OBJECT
 
 public:
+    enum Mode {CreateNode, CreateEdge, MoveNode};
+
     GraphWidget();
 
     void itemMoved();
 
+private slots:
+    void newNode();
+    void newEdge();
+    void moveNode();
+
 protected:
+    
     void keyPressEvent(QKeyEvent *event);
     void execute();
     void timerEvent(QTimerEvent *event);
@@ -65,6 +73,7 @@ protected:
     void mouseMoveEvent(QMouseEvent *event);
     void wheelEvent(QWheelEvent *event);
     void drawBackground(QPainter *painter, const QRectF &rect);
+    void contextMenuEvent(QContextMenuEvent *event);
 
     void scaleView(qreal scaleFactor);
 
@@ -72,6 +81,10 @@ private:
     int timerId;
     Node *centerNode;
     Edge *creatingEdge;
+    QAction *newEdgeAct;
+    QAction *newNodeAct;
+    QAction *moveNodeAct;
+    Mode mode;
 };
 
 #endif

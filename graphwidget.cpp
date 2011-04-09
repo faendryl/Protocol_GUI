@@ -47,12 +47,13 @@
 #include <QGraphicsScene>
 #include <QWheelEvent>
 #include <QQueue>
+#include <QMenu>
 
 #include <math.h>
 #include <iostream>
 
 GraphWidget::GraphWidget()
-    : timerId(0),creatingEdge(0)
+    : timerId(0),creatingEdge(0),mode(MoveNode)
 {
     QGraphicsScene *scene = new QGraphicsScene(this);
     scene->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -105,9 +106,37 @@ GraphWidget::GraphWidget()
     node8->setPos(0, 50);
     node9->setPos(50, 50);*/
 
+
+    newNodeAct=new QAction(tr("&New Node"),this);
+    newNodeAct->setShortcuts(QKeySequence::New);
+    newNodeAct->setStatusTip(tr("Create a new node"));
+    connect(newNodeAct,SIGNAL(triggered()),this,SLOT(newNode()));
+
+    newEdgeAct=new QAction(tr("N&ew Edge"),this);
+    //newEdgeAct->setShortcuts(QKeySequence::New);
+    newEdgeAct->setStatusTip(tr("Create a new edge"));
+    connect(newEdgeAct,SIGNAL(triggered()),this,SLOT(newEdge()));
+
+    moveNodeAct=new QAction(tr("&Move Nodes"),this);
+    moveNodeAct->setStatusTip(tr("Move nodes"));
+    connect(moveNodeAct,SIGNAL(triggered()),this,SLOT(moveNode()));
+
+
     scale(qreal(0.8), qreal(0.8));
     setMinimumSize(400, 400);
     setWindowTitle(tr("Elastic Nodes"));
+}
+
+void GraphWidget::newNode()
+{
+    std::cout<<"Create new node"<<std::endl;
+    mode=CreateNode;
+}
+
+void GraphWidget::moveNode()
+{
+    std::cout<<"Move node"<<std::endl;
+    mode=MoveNode;
 }
 
 void GraphWidget::itemMoved()
@@ -218,10 +247,9 @@ void GraphWidget::timerEvent(QTimerEvent *event)
 
 void GraphWidget::mousePressEvent(QMouseEvent *event)
 {
-    QGraphicsView::mousePressEvent(event);
-    if(scene()->mouseGrabberItem()) return;
+    //if(scene()->mouseGrabberItem()) return;
     QPointF scenePos(mapToScene(event->pos()));
-    if(event->button()==Qt::RightButton){
+    if(mode==CreateEdge && event->button()==Qt::LeftButton){
         QList<QGraphicsItem*> startItems=scene()->items(scenePos);
         foreach (QGraphicsItem *item,startItems){
             Node *startNode=qgraphicsitem_cast<Node*>(item);
@@ -234,17 +262,24 @@ void GraphWidget::mousePressEvent(QMouseEvent *event)
             }
         }
     }
-    else{
+    else if(mode==CreateNode && event->button()==Qt::LeftButton){
         Node *node=new Node(this);
         node->setPos(scenePos.x(),scenePos.y());
         scene()->addItem(node);
     }
+    else
+        QGraphicsView::mousePressEvent(event);
+}
+
+void GraphWidget::newEdge()
+{
+    std::cout<<"Create new edge"<<std::endl;
+    mode=CreateEdge;
 }
 
 void GraphWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-    QGraphicsView::mouseReleaseEvent(event);
-    if(event->button()==Qt::RightButton && creatingEdge){
+    if(mode==CreateEdge && event->button()==Qt::LeftButton && creatingEdge){
         QPointF scenePos(mapToScene(event->pos()));
         QList<QGraphicsItem*> endItems=scene()->items(scenePos);
         foreach (QGraphicsItem* item, endItems){
@@ -258,6 +293,8 @@ void GraphWidget::mouseReleaseEvent(QMouseEvent *event)
         delete creatingEdge;
         creatingEdge=0;
     }
+    else
+        QGraphicsView::mouseReleaseEvent(event);
 }
 
 void GraphWidget::mouseMoveEvent(QMouseEvent *event)
@@ -310,6 +347,17 @@ void GraphWidget::drawBackground(QPainter *painter, const QRectF &rect)
     painter->setPen(Qt::black);
     painter->drawText(textRect, message);
 }
+
+void GraphWidget::contextMenuEvent(QContextMenuEvent *event)
+{
+    std::cout<<"ey"<<std::endl;
+    QMenu menu(this);
+    menu.addAction(newNodeAct);
+    menu.addAction(newEdgeAct);
+    menu.addAction(moveNodeAct);
+    menu.exec(event->globalPos());
+}
+
 
 void GraphWidget::scaleView(qreal scaleFactor)
 {
