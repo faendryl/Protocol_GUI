@@ -50,14 +50,20 @@
 #include "graphwidget.h"
 #include <iostream>
 
-Node::Node(GraphWidget *graphWidget)
-    : graph(graphWidget)
+#include <Python.h>
+
+Node::Node(GraphWidget *graphWidget,PyObject *protocolModule)
+    : graph(graphWidget),pModule(protocolModule)
 {
     setFlag(ItemIsMovable);
     setFlag(ItemSendsGeometryChanges);
     setCacheMode(DeviceCoordinateCache);
     setZValue(-1);
     setAcceptedMouseButtons(Qt::LeftButton);
+
+    //PyObject *pName=PyString_FromString("test_module");
+    //pModule=PyImport_Import(protocolName);
+    //Py_DECREF(pName);
 }
 
 void Node::addEdge(Edge *edge)
@@ -174,6 +180,14 @@ bool Node::execute()
         Data *data=new Data();
         data->value=sum;
         edge->setEdgeData(data);
+    }
+    PyObject *pDict=PyModule_GetDict(pModule);
+    PyObject *pFunc=PyDict_GetItemString(pDict,"execute");
+    if(PyCallable_Check(pFunc)){
+        PyObject_CallObject(pFunc,NULL);
+    }
+    else{
+        PyErr_Print();
     }
     // Use a consumption model - inputs get consumed when used.  This will allow cycles, among other things.
     if(!outgoing_edge_count)

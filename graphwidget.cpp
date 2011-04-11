@@ -48,13 +48,46 @@
 #include <QWheelEvent>
 #include <QQueue>
 #include <QMenu>
+#include <QDir>
 
 #include <math.h>
 #include <iostream>
 
+#include <Python.h>
+
 GraphWidget::GraphWidget()
     : timerId(0),creatingEdge(0),mode(MoveNode)
 {
+    Py_Initialize();
+    PyEval_InitThreads();
+    PyRun_SimpleString("import sys");
+    PyRun_SimpleString("sys.path.append('modules')");
+
+    QDir moduleDirectory("modules");
+    QStringList moduleNameFilter("*.py");
+    QStringList moduleNameList=moduleDirectory.entryList(moduleNameFilter);
+    for(QStringList::Iterator it=moduleNameList.begin();it!=moduleNameList.end();++it){
+        (*it).chop(3);
+    }
+    signalMapper=new QSignalMapper(this);
+    
+    foreach(QString moduleName,moduleNameList){
+        PyObject *protocolName=PyString_FromString(moduleName.toAscii());
+        PyObject *module=PyImport_Import(protocolName);
+        hashProtocolNameToModule[moduleName]=module;
+        moduleList.append(module);
+        Py_DECREF(protocolName);
+        QAction *protocolAction=new QAction(moduleName,this);
+        moduleActionList.append(protocolAction);
+        signalMapper->setMapping(protocolAction,moduleName);
+        connect(protocolAction,SIGNAL(triggered()),signalMapper,SLOT(map()));
+        qDebug()<<moduleName;
+    }
+
+    connect(signalMapper,SIGNAL(mapped(QString)),this,SLOT(createNode(QString)));
+
+
+
     QGraphicsScene *scene = new QGraphicsScene(this);
     scene->setItemIndexMethod(QGraphicsScene::NoIndex);
     scene->setSceneRect(-200, -200, 400, 400);
@@ -69,7 +102,9 @@ GraphWidget::GraphWidget()
     Node *node2 = new Node(this);
     Node *node3 = new Node(this);
     Node *node4 = new Node(this);*/
-    centerNode = new Node(this);
+    //PyObject *protocolName=PyString_FromString("test_module");
+    centerNode = new Node(this,moduleList.front());
+    //Py_DECREF(protocolName);
     /*Node *node6 = new Node(this);
     Node *node7 = new Node(this);
     Node *node8 = new Node(this);
@@ -125,6 +160,24 @@ GraphWidget::GraphWidget()
     scale(qreal(0.8), qreal(0.8));
     setMinimumSize(400, 400);
     setWindowTitle(tr("Elastic Nodes"));
+
+
+
+}
+
+GraphWidget::~GraphWidget()
+{
+    foreach(PyObject* module,moduleList){
+        Py_DECREF(module);
+    }
+    Py_Finalize();
+    delete signalMapper;
+}
+
+void GraphWidget::createNode(QString moduleName)
+{
+    mode=CreateNode;
+    activeModule=moduleName;
 }
 
 void GraphWidget::newNode()
@@ -263,7 +316,8 @@ void GraphWidget::mousePressEvent(QMouseEvent *event)
         }
     }
     else if(mode==CreateNode && event->button()==Qt::LeftButton){
-        Node *node=new Node(this);
+        qDebug()<<"New node "<<activeModule;
+        Node *node=new Node(this,hashProtocolNameToModule[activeModule]);
         node->setPos(scenePos.x(),scenePos.y());
         scene()->addItem(node);
     }
@@ -352,7 +406,12 @@ void GraphWidget::contextMenuEvent(QContextMenuEvent *event)
 {
     std::cout<<"ey"<<std::endl;
     QMenu menu(this);
-    menu.addAction(newNodeAct);
+    //menu.addAction(newNodeAct);
+    QMenu protocolMenu(&menu);
+    foreach(QAction *action,moduleActionList){
+        protocolMenu.addAction(action);
+    }
+    menu.addMenu(&protocolMenu);
     menu.addAction(newEdgeAct);
     menu.addAction(moveNodeAct);
     menu.exec(event->globalPos());

@@ -44,6 +44,7 @@
 
 #include <QGraphicsItem>
 #include <QList>
+#include <Python.h>
 
 class Edge;
 class GraphWidget;
@@ -55,7 +56,7 @@ QT_END_NAMESPACE
 class Node : public QGraphicsItem
 {
 public:
-    Node(GraphWidget *graphWidget);
+    Node(GraphWidget *graphWidget,PyObject* protocolModule);
 
     void addEdge(Edge *edge);
     void removeEdge(Edge *edge);
@@ -87,6 +88,7 @@ private:
     QList<Data *> inputList;
     QPointF newPos;
     GraphWidget *graph;
+    PyObject *pModule;
 };
 
 #endif

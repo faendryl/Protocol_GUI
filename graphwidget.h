@@ -43,6 +43,11 @@
 #define GRAPHWIDGET_H
 
 #include <QtGui/QGraphicsView>
+#include <QList>
+#include <QHash>
+#include <QSignalMapper>
+#include <Python.h>
+
 
 class Node;
 class Edge;
@@ -55,6 +60,7 @@ public:
     enum Mode {CreateNode, CreateEdge, MoveNode};
 
     GraphWidget();
+    ~GraphWidget();
 
     void itemMoved();
 
@@ -62,6 +68,10 @@ private slots:
     void newNode();
     void newEdge();
     void moveNode();
+    void createNode(QString moduleName);
+
+signals:
+    void requestProtocolNode(char *protocolName);
 
 protected:
     
@@ -85,6 +95,11 @@ private:
     QAction *newNodeAct;
     QAction *moveNodeAct;
     Mode mode;
+    QString activeModule;
+    QList<PyObject*> moduleList;
+    QList<QAction*> moduleActionList;
+    QSignalMapper *signalMapper;
+    QHash<QString,PyObject*> hashProtocolNameToModule;
 };
 
 #endif

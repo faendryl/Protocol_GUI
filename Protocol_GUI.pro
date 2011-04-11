@@ -5,7 +5,8 @@
 TEMPLATE = app
 TARGET = 
 DEPENDPATH += .
-INCLUDEPATH += .
+INCLUDEPATH += . /usr/include/python2.6
+LIBS += -lpython2.6_d
 
 # Input
 CONFIG  += debug
